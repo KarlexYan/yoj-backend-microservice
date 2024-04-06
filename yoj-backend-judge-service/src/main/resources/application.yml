@@ -2,6 +2,7 @@
 spring:
   application:
     name: yoj-backend-judge-service
+
   # 默认 dev 环境
   profiles:
     active: dev

@@ -10,13 +10,14 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@MapperScan("com.yupi.yojbackendquestionservice.mapper")
+@MapperScan("com.karlexyan.yojbackendquestionservice.mapper")
 @EnableScheduling
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 @ComponentScan("com.karlexyan")
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = {"com.karlexyan.yojbackendserviceclient.service"})
-public class YojBackendQuestionServiceApplication {
+public class
+YojBackendQuestionServiceApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(YojBackendQuestionServiceApplication.class, args);
