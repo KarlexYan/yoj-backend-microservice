@@ -1,43 +1,46 @@
 package com.karlexyan.yojbackendserviceclient.service;
 
 
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
-import com.karlexyan.yojbackendmodel.model.dto.user.UserQueryRequest;
+import com.karlexyan.yojbackendcommon.common.ErrorCode;
+import com.karlexyan.yojbackendcommon.exception.BusinessException;
 import com.karlexyan.yojbackendmodel.model.entity.User;
-import com.karlexyan.yojbackendmodel.model.vo.LoginUserVO;
+import com.karlexyan.yojbackendmodel.model.enums.UserRoleEnum;
 import com.karlexyan.yojbackendmodel.model.vo.UserVO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.List;
 
+import static com.karlexyan.yojbackendcommon.constant.UserConstant.USER_LOGIN_STATE;
+
 /**
- * 用户服务
- *
+ * 公共用户服务接口
  */
-public interface UserFeignClient extends IService<User> {
+@FeignClient(name = "yoj-backend-user-service", path = "/api/user/inner")
+public interface UserFeignClient {
+
 
     /**
-     * 用户注册
+     * 根据id获取用户信息
      *
-     * @param userAccount   用户账户
-     * @param userPassword  用户密码
-     * @param checkPassword 校验密码
-     * @return 新用户 id
+     * @param userId
+     * @return
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword);
+    @GetMapping("/get/id")
+    User getById(@RequestParam("userId") long userId);
 
     /**
-     * 用户登录
+     * 根据id获取用户列表
      *
-     * @param userAccount  用户账户
-     * @param userPassword 用户密码
-     * @param request
-     * @return 脱敏后的用户信息
+     * @param idList
+     * @return
      */
-    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
-
+    @GetMapping("/get/ids")
+    List<User> listByIds(@RequestParam("idList") Collection<Long> idList);
 
     /**
      * 获取当前登录用户
@@ -45,23 +48,15 @@ public interface UserFeignClient extends IService<User> {
      * @param request
      * @return
      */
-    User getLoginUser(HttpServletRequest request);
-
-    /**
-     * 获取当前登录用户（允许未登录）
-     *
-     * @param request
-     * @return
-     */
-    User getLoginUserPermitNull(HttpServletRequest request);
-
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    boolean isAdmin(HttpServletRequest request);
+    default User getLoginUser(HttpServletRequest request) {
+        // 先判断是否已登录
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User currentUser = (User) userObj;
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        return currentUser;
+    }
 
     /**
      * 是否为管理员
@@ -69,22 +64,9 @@ public interface UserFeignClient extends IService<User> {
      * @param user
      * @return
      */
-    boolean isAdmin(User user);
-
-    /**
-     * 用户注销
-     *
-     * @param request
-     * @return
-     */
-    boolean userLogout(HttpServletRequest request);
-
-    /**
-     * 获取脱敏的已登录用户信息
-     *
-     * @return
-     */
-    LoginUserVO getLoginUserVO(User user);
+    default boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
 
     /**
      * 获取脱敏的用户信息
@@ -92,22 +74,12 @@ public interface UserFeignClient extends IService<User> {
      * @param user
      * @return
      */
-    UserVO getUserVO(User user);
-
-    /**
-     * 获取脱敏的用户信息
-     *
-     * @param userList
-     * @return
-     */
-    List<UserVO> getUserVO(List<User> userList);
-
-    /**
-     * 获取查询条件
-     *
-     * @param userQueryRequest
-     * @return
-     */
-    QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
-
+    default UserVO getUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user, userVO);
+        return userVO;
+    }
 }
