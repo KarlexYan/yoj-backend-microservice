@@ -29,7 +29,7 @@ public class GlobalAuthFilter implements GlobalFilter, Ordered {
             ServerHttpResponse response = exchange.getResponse();
             response.setStatusCode(HttpStatus.FORBIDDEN);
             DataBufferFactory dataBufferFactory = response.bufferFactory();
-            DataBuffer dataBuffer = dataBufferFactory.wrap("无线圈".getBytes(StandardCharsets.UTF_8));
+            DataBuffer dataBuffer = dataBufferFactory.wrap("无权限".getBytes(StandardCharsets.UTF_8));
             return response.writeWith(Mono.just(dataBuffer));
         }
         // TODO统一权限校验，通过JWT获取登录用户信息
