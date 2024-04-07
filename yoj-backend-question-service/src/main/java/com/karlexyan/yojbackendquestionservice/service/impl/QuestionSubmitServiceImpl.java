@@ -18,6 +18,7 @@ import com.karlexyan.yojbackendmodel.model.enums.QuestionSubmitLanguageEnum;
 import com.karlexyan.yojbackendmodel.model.enums.QuestionSubmitStatusEnum;
 import com.karlexyan.yojbackendmodel.model.vo.QuestionSubmitVO;
 import com.karlexyan.yojbackendquestionservice.mapper.QuestionSubmitMapper;
+import com.karlexyan.yojbackendquestionservice.rabbitmq.MyMessageProducer;
 import com.karlexyan.yojbackendquestionservice.service.QuestionService;
 import com.karlexyan.yojbackendquestionservice.service.QuestionSubmitService;
 import com.karlexyan.yojbackendserviceclient.service.JudgeFeignClient;
@@ -49,6 +50,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     @Lazy
     private JudgeFeignClient judgeFeignClient;
+
+    @Resource
+    private MyMessageProducer myMessageProducer;
 
     /**
      * 提交
@@ -99,10 +103,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         boolean save = this.save(questionSubmit);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR, "数据保存失败");
         Long questionSubmitId = questionSubmit.getId();
+        // 向交换机发送消息
+        myMessageProducer.sendMessage("code_exchange", "my_routingKey", String.valueOf(questionSubmitId));
         // 异步执行判题服务
-        CompletableFuture.runAsync(() -> {
-            judgeFeignClient.doJudge(questionSubmitId);
-        });
+//        CompletableFuture.runAsync(() -> {
+//            judgeFeignClient.doJudge(questionSubmitId);
+//        });
         return questionSubmitId;
     }
 
