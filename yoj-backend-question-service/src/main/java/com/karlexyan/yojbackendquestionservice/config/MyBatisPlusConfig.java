@@ -1,4 +1,4 @@
-package com.karlexyan.yojbackenduserservice.config;
+package com.karlexyan.yojbackendquestionservice.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * MyBatis Plus 配置
  */
 @Configuration
-@MapperScan("com.karlexyan.yojbackenduserservice.mapper")
+@MapperScan("com.karlexyan.yojbackendquestionservice.mapper")
 public class MyBatisPlusConfig {
 
     /**
